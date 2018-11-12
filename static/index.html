@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Socket Group Chat</title>
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	<script type="text/javascript" src="jquery.js"></script>
+	<script type="text/javascript" src="moment.js"></script>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript">
+	$(document).ready(function (){
+		var socket = io.connect();
+
+		var name;
+		while(!name || name.trim().length < 2){
+			name = prompt("ENTER YOUR NAME TO CHAT! (name must be at least 2 characters long and you won't be able to join the chat until valid name is given; if you close dialogue box please close this window and open another one)")
+		};
+
+		socket.emit('newUser', {userName: name});
+
+		socket.on('updateUserList', function(serverData){
+				$('#userList').html('');
+				$(serverData).each(function(index){
+					$('#userList').append("<span id='users_span'>" + serverData[index].name + "</span>" + '<br>');
+				});
+		});
+		
+
+		$(document).on('submit', 'form', function(){
+			socket.emit('newMessage', {
+				msg: '<p>' + '<b>' + name + '</b>' + ': ' + $('#newMessage').val() + ' (' + '<i>' + moment().format('MMMM Do YYYY, h:mm a') + '</i>' + ')' + '</p>' 
+			});
+			$('#newMessage').val('');
+			return false
+		});
+
+		socket.on('updateMessageBoard', function(serverData){
+			$('.message_box').append(serverData.msg);
+			$('.message_box').scrollTop($('.message_box')[0].scrollHeight);
+		});
+		
+		
+	});
+
+
+	</script>
+</head>
+<body onload="newCard()">
+	<div id="wrapper">
+		<h1>Socket Group Chat</h1>
+		<div class="message_box"><span>Messages</span></div>
+		<div class="users_box">
+			<span>Current Users</span><br>
+			<div id="userList">
+			</div>
+		</div>
+		<div class="bingo_box">
+			<span>bingo-M</span><br>
+			<div id="content">
+		<table id="bingotable">
+			<tr>
+				<th class="orange">B</th>
+				<th class="orange">I</th>
+				<th class="orange">N</th>
+				<th class="orange">G</th>
+				<th class="orange">O</th>
+			</tr> 
+				<td id="square0"> &nbsp;</td>
+				<td id="square1"> &nbsp;</td>
+				<td id="square2"> &nbsp;</td>
+				<td id="square3"> &nbsp;</td>
+				<td id="square4"> &nbsp;</td>
+			</tr>
+			<tr>
+				<td id="square5"> &nbsp;</td>
+				<td id="square6"> &nbsp;</td>
+				<td id="square7"> &nbsp;</td>
+				<td id="square8"> &nbsp;</td>
+				<td id="square9"> &nbsp;</td>
+			</tr>
+			<tr>
+				<td id="square10"> &nbsp;</td>
+				<td id="square11"> &nbsp;</td>
+				<td id="squarefree"> FREE</td>
+				<td id="square12"> &nbsp;</td>
+				<td id="square13"> &nbsp;</td>
+			</tr>
+			<tr>
+				<td id="square14"> &nbsp;</td>
+				<td id="square15"> &nbsp;</td>
+				<td id="square16"> &nbsp;</td>
+				<td id="square17"> &nbsp;</td>
+				<td id="square18"> &nbsp;</td>
+			</tr>
+			<tr>
+				<td id="square19"> &nbsp;</td>
+				<td id="square20"> &nbsp;</td>
+				<td id="square21"> &nbsp;</td>
+				<td id="square22"> &nbsp;</td>
+				<td id="square23"> &nbsp;</td>
+			</tr>
+		</table>
+	</div>
+	<p><a href="#" onclick="anotherCard()">Click here</a> to create a new card</p>
+		</div>
+		<form>
+			<input type="text" id="newMessage" placeholder="Type Message Here">
+			<input type="submit" id="submit" value="Send!">
+		</form>
+	</div> <!--end of wrapper -->
+	<script>
+	var globalVariableForBingo={
+	d1:"false",
+	d2:"false",
+	r1:"false",
+	r2:"false",
+	r3:"false",
+	r4:"false",
+	r5:"false",
+	c1:"false",
+	c2:"false",
+	c3:"false",
+	c4:"false",
+	c5:"false",
+	globalCounter:"0"
+	};
+	var usedNums = new Array(24);
+
+function newCard() {
+     globalVariableForBingo.d1="false";
+	 globalVariableForBingo.d2="false";
+	 globalVariableForBingo.r1="false";
+	 globalVariableForBingo.r2="false";
+	 globalVariableForBingo.r3="false";
+	 globalVariableForBingo.r4="false";
+	 globalVariableForBingo.r5="false";
+	 globalVariableForBingo.c1="false";
+	 globalVariableForBingo.c2="false";
+	 globalVariableForBingo.c3="false";
+	 globalVariableForBingo.c4="false";
+	 globalVariableForBingo.c5="false";
+	 globalVariableForBingo.globalCounter="0";
+	 $("#bingotable tr td").removeClass("blue checked");
+	//Starting loop through each square card
+	for(var i=0; i < 24; i++) {  //<--always this code for loops. change in red
+		setSquare(i);
+	}
+}
+
+function setSquare(thisSquare) {
+	var currSquare = "square"+thisSquare;
+	var newNum;
+	
+	var colPlace =new Array(0,1,2,3,4,0,1,2,3,4,0,1,3,4,0,1,2,3,4,0,1,2,3,4);
+	
+	do {
+		newNum = getNewNum()+1;
+	}
+	while (usedNums[newNum]);
+	
+	usedNums[newNum] = true;
+	document.getElementById(currSquare).innerHTML = newNum;
+}
+
+function getNewNum() {
+var t=Math.floor(Math.random() * 24);
+console.log(t);
+	return Math.floor(Math.random() * 24);
+	
+}
+
+function anotherCard() {
+	for(var i=1; i<usedNums.length; i++) {
+	usedNums[i] = false;
+	}
+	
+	newCard();
+}
+$("#bingotable tr td").click(function(){
+      $(this).toggleClass("blue");
+	    $(this).toggleClass("checked");
+		var count=$('.checked').length;
+        if (count>=4){
+	    onNumberClickCheck();
+	    }
+		if(globalVariableForBingo.globalCounter>=5){
+		alert("bingo");
+		}
+});
+
+ function onNumberClickCheck(){
+        //for diagonal
+		console.log(globalVariableForBingo.d1);
+		if(globalVariableForBingo.d1=="false"){
+		if(($("#square0").hasClass( "checked" ))&&($("#square6").hasClass( "checked" ))&&($("#square17").hasClass( "checked" ))&&($("#square23").hasClass( "checked" ))){
+		globalVariableForBingo["d1"]="true";
+		globalVariableForBingo.globalCounter++;
+		}}
+		if(globalVariableForBingo.d2=="false"){
+		if(($("#square4").hasClass( "checked" ))&&($("#square8").hasClass( "checked" ))&&($("#square15").hasClass( "checked" ))&&($("#square19").hasClass( "checked" ))){
+		globalVariableForBingo["d2"]="true";
+		globalVariableForBingo.globalCounter++;
+		}}
+		//for horizontal line
+		if(globalVariableForBingo.r1=="false"){
+		if(($("#square1").hasClass( "checked" ))&&($("#square2").hasClass( "checked" ))&&($("#square3").hasClass( "checked" ))&&($("#square4").hasClass( "checked" ))&&($("#square0").hasClass( "checked" ))){
+		globalVariableForBingo["r1"]="true";
+		globalVariableForBingo.globalCounter++;
+		}}
+		if(globalVariableForBingo.r2=="false"){
+		if(($("#square5").hasClass( "checked" ))&&($("#square6").hasClass( "checked" ))&&($("#square7").hasClass( "checked" ))&&($("#square8").hasClass( "checked" ))&&($("#square9").hasClass( "checked" ))){
+		globalVariableForBingo["r2"]="true";
+		globalVariableForBingo.globalCounter++;
+		}}
+		if(globalVariableForBingo.r3=="false"){
+		if(($("#square10").hasClass( "checked" ))&&($("#square11").hasClass( "checked" ))&&($("#square12").hasClass( "checked" ))&&($("#square13").hasClass( "checked" ))){
+		globalVariableForBingo["r3"]="true";
+		globalVariableForBingo.globalCounter++;
+		}}
+		if(globalVariableForBingo.r4=="false"){
+		if(($("#square14").hasClass( "checked" ))&&($("#square16").hasClass( "checked" ))&&($("#square15").hasClass( "checked" ))&&($("#square17").hasClass( "checked" ))&&($("#square18").hasClass( "checked" ))){
+		globalVariableForBingo["r4"]="true";
+		globalVariableForBingo.globalCounter++;
+		}}
+		if(globalVariableForBingo.r5=="false"){
+		if(($("#square23").hasClass( "checked" ))&&($("#square22").hasClass( "checked" ))&&($("#square21").hasClass( "checked" ))&&($("#square20").hasClass( "checked" ))&&($("#square19").hasClass( "checked" ))){
+		globalVariableForBingo["r5"]="true";
+		globalVariableForBingo.globalCounter++;
+		}}
+		
+		//for Vertical line
+		if(globalVariableForBingo.c1=="false"){
+		if(($("#square0").hasClass( "checked" ))&&($("#square5").hasClass( "checked" ))&&($("#square10").hasClass( "checked" ))&&($("#square14").hasClass( "checked" ))&&($("#square19").hasClass( "checked" ))){
+		globalVariableForBingo["c1"]="true";
+		globalVariableForBingo.globalCounter++;
+		}}
+		if(globalVariableForBingo.c2=="false"){
+		if(($("#square1").hasClass( "checked" ))&&($("#square6").hasClass( "checked" ))&&($("#square11").hasClass( "checked" ))&&($("#square15").hasClass( "checked" ))&&($("#square20").hasClass( "checked" ))){
+		globalVariableForBingo["c2"]="true";
+		globalVariableForBingo.globalCounter++;
+		}}
+		if(globalVariableForBingo.c3=="false"){
+		if(($("#square2").hasClass( "checked" ))&&($("#square7").hasClass( "checked" ))&&($("#square16").hasClass( "checked" ))&&($("#square21").hasClass( "checked" ))){
+		globalVariableForBingo["c3"]="true";
+		globalVariableForBingo.globalCounter++;
+		}}
+		if(globalVariableForBingo.c4=="false"){
+		if(($("#square3").hasClass( "checked" ))&&($("#square8").hasClass( "checked" ))&&($("#square12").hasClass( "checked" ))&&($("#square17").hasClass( "checked" ))&&($("#square22").hasClass( "checked" ))){
+		globalVariableForBingo["c4"]="true";
+		globalVariableForBingo.globalCounter++;
+		}}
+		if(globalVariableForBingo.c5=="false"){
+		if(($("#square4").hasClass( "checked" ))&&($("#square9").hasClass( "checked" ))&&($("#square13").hasClass( "checked" ))&&($("#square18").hasClass( "checked" ))&&($("#square23").hasClass( "checked" ))){
+		globalVariableForBingo["c5"]="true";
+		globalVariableForBingo.globalCounter++;
+		}}
+		
+		
+ }
+	</script>
+</body>
+</html>
